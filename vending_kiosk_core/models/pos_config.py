@@ -44,9 +44,6 @@ class PosConfig(models.Model):
             ('location_id', '!=', False),
         ], order='code, id')
 
-        # Forzar recálculo del campo computado antes de filtrar por stock.
-        all_slots._compute_current_stock()
-
         slots_with_stock = all_slots.filtered(lambda s: s.current_stock > 0 and s.product_tmpl_id)
         company_id = self.company_id.id
 

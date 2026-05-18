@@ -16,6 +16,10 @@ from odoo.exceptions import UserError  # type: ignore
 
 _logger = logging.getLogger(__name__)
 
+# Namespace para pg_advisory_xact_lock — int32 que identifica locks de webhook vending.
+# Valor ASCII de "vend" (0x76656E64). Junto con order.id forma una clave única por orden.
+_VENDING_WEBHOOK_LOCK_NS = 0x76656E64
+
 
 class PosOrder(models.Model):
     """Extensión de POS Order para vending machines."""
@@ -96,19 +100,23 @@ class PosOrder(models.Model):
     def _check_webhook_duplicate(self):
         """
         Verifica si este webhook ya fue procesado antes.
-        
+
         Una orden se considera ya procesada si su estado está en uno de:
         - vending_delivery_success: Entrega confirmada
         - vending_delivery_error: Error de entrega
         - payment_error: Error de pago
         - qr_expired: QR vencido
         - user_cancelled: Cancelada por usuario
-        
+
+        Defensa adicional: si la orden ya tiene factura o pago registrado, también
+        se considera duplicada (cubre el caso donde un intento previo alcanzó a
+        crear pago/factura pero falló antes de marcar el vending_status terminal).
+
         Returns:
             bool: True si es un webhook duplicado, False si es nuevo
         """
         self.ensure_one()
-        
+
         # Estados que indican que el webhook ya fue procesado
         processed_statuses = (
             'vending_delivery_success',
@@ -117,14 +125,22 @@ class PosOrder(models.Model):
             'qr_expired',
             'user_cancelled',
         )
-        
+
         if self.vending_status in processed_statuses:
             _logger.warning(
                 f"Webhook duplicado detectado para order {self.vending_reference}. "
                 f"Estado actual: {self.vending_status}"
             )
             return True
-        
+
+        if self.account_move or self.payment_ids:
+            _logger.warning(
+                f"Webhook duplicado detectado para order {self.vending_reference} por datos: "
+                f"account_move={bool(self.account_move)}, payment_ids={len(self.payment_ids)}. "
+                f"Estado actual: {self.vending_status}"
+            )
+            return True
+
         return False
 
     def _register_internal_error(self, error_name, error_description):
@@ -327,6 +343,22 @@ class PosOrder(models.Model):
         }
 
         _logger.info(f"Webhook recibido: status={status}, reference={self.vending_reference}")
+
+        # Lock idempotente por orden usando pg_try_advisory_xact_lock.
+        # Se libera automáticamente al COMMIT/ROLLBACK de la transacción.
+        # Si otra transacción ya tomó el lock (retry de Odoo o reenvío de Winfas),
+        # esta corta el procesamiento sin tocar nada — evita facturas/pagos/pickings duplicados.
+        self.env.cr.execute(
+            "SELECT pg_try_advisory_xact_lock(%s, %s)",
+            (_VENDING_WEBHOOK_LOCK_NS, self.id),
+        )
+        if not self.env.cr.fetchone()[0]:
+            _logger.warning(
+                f"Webhook concurrente detectado para {self.vending_reference} "
+                f"(advisory lock ya tomado por otra transacción)"
+            )
+            audit['result'] = 'duplicate_concurrent'
+            return audit
 
         # Verificar webhook duplicado ANTES de cualquier procesamiento
         if self._check_webhook_duplicate():
