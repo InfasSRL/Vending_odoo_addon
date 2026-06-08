@@ -1,7 +1,3 @@
-.o_self_vending_oos {
-    background: radial-gradient(circle at 20% 20%, #f8d7da, #f4f6f8 55%, #eceff1);
-}
-
 .o_self_vending_oos_card {
     max-width: 640px;
     border-radius: 20px;
@@ -9,7 +5,6 @@
     background: rgba(255, 255, 255, 0.92);
     box-shadow: 0 20px 45px rgba(176, 0, 32, 0.15);
 }
-
 .o_self_vending_oos_icon {
     width: 64px;
     height: 64px;
@@ -22,4 +17,26 @@
     justify-content: center;
     font-size: 2rem;
     font-weight: 700;
+}
+.o_self_vending_split {
+    height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+}
+.o_self_vending_split .o_self_vending_ad {
+    height: 50vh !important;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+}
+.o_self_vending_split .o_self_vending_ad .o_self_vending_ad_video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+    display: block;
+}
+.o_self_vending_split .o_self_vending_oos {
+    height: 50vh !important;
+    width: 100%;
+    background: radial-gradient(circle at 20% 20%, #f8d7da, #f4f6f8 55%, #eceff1);
 }

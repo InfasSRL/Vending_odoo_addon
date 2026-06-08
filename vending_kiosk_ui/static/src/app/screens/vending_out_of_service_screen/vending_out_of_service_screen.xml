@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="vending_kiosk_ui.VendingOutOfServiceScreen">
-        <div class="o_self_vending_oos d-flex align-items-center justify-content-center h-100 w-100">
-            <div class="o_self_vending_oos_card p-4 p-lg-5 text-center">
-                <div class="o_self_vending_oos_icon mb-3">!</div>
-                <h1 class="h2 mb-3">Máquina desactivada por falla</h1>
-                <p class="mb-2">
-                    Esta expendedora se encuentra temporalmente fuera de servicio.
-                </p>
+        <div class="o_self_vending_split d-flex flex-column h-100 w-100">
+            <div class="o_self_vending_ad">
+                <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" class="o_self_vending_ad_video">
+                    <source src="/vending_kiosk_ui/static/src/video/ad_test.mp4" type="video/mp4"/>
+                </video>
+            </div>
+            <div class="o_self_vending_oos d-flex align-items-center justify-content-center">
+                <div class="o_self_vending_oos_card p-4 p-lg-5 text-center">
+                    <div class="o_self_vending_oos_icon mb-3">!</div>
+                    <h1 class="h2 mb-3">Máquina desactivada por falla</h1>
+                    <p class="mb-2">Esta expendedora se encuentra temporalmente fuera de servicio.</p>
+                </div>
             </div>
         </div>
     </t>
