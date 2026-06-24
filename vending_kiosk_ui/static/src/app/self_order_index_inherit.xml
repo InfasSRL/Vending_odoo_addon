@@ -18,6 +18,13 @@
                 <VendingOutOfServiceScreen/>
             </t>
         </xpath>
+        <xpath expr="//Router" position="before">
+            <div t-if="showAdBanner" class="o_vending_ad_root">
+                <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" class="o_vending_ad_root_video">
+                    <source src="/vending_kiosk_ui/static/src/video/ad_test.mp4" type="video/mp4"/>
+                </video>
+            </div>
+        </xpath>
         <xpath expr="//div[@t-else='']" position="replace">
             <div t-else="" class="h-100 w-100">
                 <t t-if="selfOrder.config.self_ordering_mode === 'vending'">
