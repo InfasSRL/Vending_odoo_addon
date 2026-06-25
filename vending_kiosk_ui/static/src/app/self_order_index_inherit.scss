@@ -32,4 +32,64 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
+}// ============================================
+// Banner publicitario vending (video sobre kiosko)
+// El <div.o_vending_ad_root> se inserta como hermano ANTES del <Router>.
+// Para partir la pantalla 50/50: el contenedor padre pasa a flex column,
+// el banner toma 50vh fijo y el hermano siguiente (Router) toma el resto.
+// ============================================
+
+.o_vending_ad_root {
+    flex: 0 0 50vh;
+    height: 50vh;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+
+    .o_vending_ad_root_video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;  // contain = video completo sin recortar (barras a los lados si la proporción no coincide)
+        display: block;
+    }
+}
+
+// El padre directo del banner se vuelve flex column ocupando todo el alto.
+:has(> .o_vending_ad_root) {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+// El hermano siguiente al banner (el Router) toma la otra mitad.
+.o_vending_ad_root ~ * {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+
+    // ── Fix pantalla dividida (junio 2026) ──
+    // El Router trae .vh-100 de Bootstrap (alto = pantalla completa). Lo
+    // atamos al 100% del contenedor flex (la mitad real).
+    &.vh-100,
+    .vh-100 {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+    }
+
+    .carousel,
+    .carousel-inner,
+    .carousel-item {
+        height: 100% !important;
+        max-height: 100%;
+    }
+
+    // El slide activo del landing usa background-size: cover, que recorta la
+    // imagen al achicarse a media pantalla (se ve cortada y descentrada).
+    // Con contain la imagen entra COMPLETA y proporcional dentro de la mitad.
+    .carousel-item {
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+    }
 }
